@@ -33,4 +33,27 @@ public class RecommendationController {
                 )
         );
     }
+    @GetMapping("/slow")
+public List<Recommendation> getSlowRecommendations() throws InterruptedException {
+
+    Thread.sleep(10000);
+
+    return List.of(
+            new Recommendation(
+                    1L,
+                    "Laptop",
+                    "Popular among electronics customers"
+            ),
+            new Recommendation(
+                    2L,
+                    "Wireless Mouse",
+                    "Frequently purchased with laptops"
+            ),
+            new Recommendation(
+                    3L,
+                    "Keyboard",
+                    "Trending accessory"
+            )
+    );
+}
 }
