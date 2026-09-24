@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import com.circuitbreaker.product_service.exception.ProductNotFoundException;
 
 @Service
 public class ProductService {
@@ -36,7 +37,7 @@ public class ProductService {
     public Product updateProduct(Long id, Product product) {
 
         Product existingProduct = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ProductNotFoundException(id));
 
         existingProduct.setName(product.getName());
         existingProduct.setPrice(product.getPrice());
@@ -47,6 +48,10 @@ public class ProductService {
 
     // DELETE product
     public void deleteProduct(Long id) {
+         if (!productRepository.existsById(id)) {
+        throw new ProductNotFoundException(id);
+    }
+
         productRepository.deleteById(id);
     }
 }
