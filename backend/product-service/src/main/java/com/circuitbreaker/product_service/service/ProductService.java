@@ -1,13 +1,14 @@
 package com.circuitbreaker.product_service.service;
 
+import com.circuitbreaker.product_service.dto.ProductRequest;
+import com.circuitbreaker.product_service.dto.ProductResponse;
+import com.circuitbreaker.product_service.exception.ProductNotFoundException;
 import com.circuitbreaker.product_service.model.Product;
 import com.circuitbreaker.product_service.repository.ProductRepository;
 
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-import com.circuitbreaker.product_service.exception.ProductNotFoundException;
 
 @Service
 public class ProductService {
@@ -18,40 +19,67 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    // GET all products
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public List<ProductResponse> getAllProducts() {
+
+        return productRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    // GET product by ID
-    public Optional<Product> getProductById(Long id) {
-        return productRepository.findById(id);
+    public ProductResponse getProductById(Long id) {
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+
+        return toResponse(product);
     }
 
-    // CREATE product
-    public Product createProduct(Product product) {
-        return productRepository.save(product);
+    public ProductResponse createProduct(ProductRequest request) {
+
+        Product product = new Product();
+
+        product.setName(request.getName());
+        product.setPrice(request.getPrice());
+        product.setCategory(request.getCategory());
+
+        Product savedProduct = productRepository.save(product);
+
+        return toResponse(savedProduct);
     }
 
-    // UPDATE product
-    public Product updateProduct(Long id, Product product) {
+    public ProductResponse updateProduct(
+            Long id,
+            ProductRequest request) {
 
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
 
-        existingProduct.setName(product.getName());
-        existingProduct.setPrice(product.getPrice());
-        existingProduct.setCategory(product.getCategory());
+        existingProduct.setName(request.getName());
+        existingProduct.setPrice(request.getPrice());
+        existingProduct.setCategory(request.getCategory());
 
-        return productRepository.save(existingProduct);
+        Product updatedProduct = productRepository.save(existingProduct);
+
+        return toResponse(updatedProduct);
     }
 
-    // DELETE product
     public void deleteProduct(Long id) {
-         if (!productRepository.existsById(id)) {
-        throw new ProductNotFoundException(id);
-    }
+
+        if (!productRepository.existsById(id)) {
+            throw new ProductNotFoundException(id);
+        }
 
         productRepository.deleteById(id);
+    }
+
+    private ProductResponse toResponse(Product product) {
+
+        return new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getPrice(),
+                product.getCategory()
+        );
     }
 }
