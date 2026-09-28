@@ -1,12 +1,9 @@
 package com.circuitbreaker.product_service.model;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.persistence.Id;
 
 @Entity
 public class Product {
@@ -15,20 +12,16 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Product name is required")
     private String name;
 
-    @NotNull(message = "Price is required")
-    @Positive(message = "Price must be greater than zero")
     private Double price;
 
-    @NotBlank(message = "Category is required")
     private String category;
 
     public Product() {
     }
 
-    public Product(Long id, String name, double price, String category) {
+    public Product(Long id, String name, Double price, String category) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -51,11 +44,11 @@ public class Product {
         this.name = name;
     }
 
-    public double getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 
