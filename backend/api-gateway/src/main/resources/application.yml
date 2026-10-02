@@ -17,7 +17,7 @@ spring:
               uri: lb://INVENTORY-SERVICE
               predicates:
                 - Path=/api/inventory/**
-
+            
             # - id: recommendation-service
             #   uri: lb://RECOMMENDATION-SERVICE
             #   predicates:

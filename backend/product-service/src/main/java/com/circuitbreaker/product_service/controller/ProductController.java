@@ -1,56 +1,79 @@
 package com.circuitbreaker.product_service.controller;
 
 import java.util.List;
-import java.util.Map;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.circuitbreaker.product_service.client.InventoryClient;
-import com.circuitbreaker.product_service.dto.ProductInventoryResponse;
 import com.circuitbreaker.product_service.model.Product;
+import com.circuitbreaker.product_service.service.ProductService;
 
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
 
-    private final InventoryClient inventoryClient;
+    private final ProductService productService;
 
-    public ProductController(InventoryClient inventoryClient) {
-        this.inventoryClient = inventoryClient;
+    public ProductController(ProductService productService) {
+        this.productService = productService;
     }
 
     @GetMapping
-    public List<Product> getProducts() {
-        return List.of(
-                new Product(1L, "Laptop", 65000, "Electronics"),
-                new Product(2L, "Wireless Mouse", 1200, "Accessories"),
-                new Product(3L, "Keyboard", 2500, "Accessories")
-        );
+    public List<Product> getAllProducts() {
+        return productService.getAllProducts();
     }
 
-    @GetMapping("/{productId}/inventory")
-    public ProductInventoryResponse getProductInventory(
-            @PathVariable Long productId) {
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
 
-        Product product = getProducts()
-                .stream()
-                .filter(p -> p.getId().equals(productId))
-                .findFirst()
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Product not found: " + productId
-                        )
-                );
+        Product product = productService.getProductById(id);
 
-        Map<String, Object> inventory =
-                inventoryClient.getInventoryByProductId(productId);
+        if (product == null) {
+            return ResponseEntity.notFound().build();
+        }
 
-        return new ProductInventoryResponse(
-                product,
-                inventory
-        );
+        return ResponseEntity.ok(product);
+    }
+
+    @PostMapping
+    public ResponseEntity<Product> createProduct(
+            @RequestBody Product product) {
+
+        Product savedProduct = productService.createProduct(product);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(savedProduct);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(
+            @PathVariable Long id,
+            @RequestBody Product product) {
+
+        Product updatedProduct = productService.updateProduct(id, product);
+
+        if (updatedProduct == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(updatedProduct);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(
+            @PathVariable Long id) {
+
+        productService.deleteProduct(id);
+
+        return ResponseEntity.noContent().build();
     }
 }
