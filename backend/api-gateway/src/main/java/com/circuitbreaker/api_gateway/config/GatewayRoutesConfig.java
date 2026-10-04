@@ -8,7 +8,7 @@ import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouter
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import static org.springframework.web.servlet.function.RequestPredicates.path;
+import org.springframework.web.servlet.function.RequestPredicates;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -19,7 +19,10 @@ public class GatewayRoutesConfig {
     public RouterFunction<ServerResponse> recommendationCircuitBreakerRoute() {
 
         return route("recommendation-circuit-breaker")
-                .route(path("/api/recommendations/**"), http())
+                .route(
+                        RequestPredicates.path("/api/recommendations/**"),
+                        http()
+                )
                 .filter(lb("RECOMMENDATION-SERVICE"))
                 .filter(
                         circuitBreaker(
