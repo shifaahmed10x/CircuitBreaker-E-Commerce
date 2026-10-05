@@ -15,21 +15,18 @@ import org.springframework.web.servlet.function.ServerResponse;
 @Configuration
 public class GatewayRoutesConfig {
 
-    @Bean
-    public RouterFunction<ServerResponse> recommendationCircuitBreakerRoute() {
+        @Bean
+        public RouterFunction<ServerResponse> recommendationCircuitBreakerRoute() {
 
-        return route("recommendation-circuit-breaker")
-                .route(
-                        RequestPredicates.path("/api/recommendations/**"),
-                        http()
-                )
-                .filter(lb("RECOMMENDATION-SERVICE"))
-                .filter(
-                        circuitBreaker(
-                                "recommendationCircuitBreaker",
-                                URI.create("forward:/fallback/recommendations")
-                        )
-                )
-                .build();
-    }
+                return route("recommendation-circuit-breaker")
+                                .route(
+                                                RequestPredicates.path("/api/recommendations/**"),
+                                                http())
+                                .filter(lb("RECOMMENDATION-SERVICE"))
+                                .filter(
+                                                circuitBreaker(
+                                                                "recommendationCircuitBreaker",
+                                                                URI.create("forward:/fallback/recommendations")))
+                                .build();
+        }
 }
