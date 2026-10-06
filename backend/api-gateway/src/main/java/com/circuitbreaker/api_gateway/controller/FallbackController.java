@@ -13,13 +13,15 @@ public class FallbackController {
     public Map<String, Object> recommendationFallback() {
 
         return Map.of(
-            "status", "fallback",
-            "message", "Recommendation service is temporarily unavailable",
-            "recommendations", List.of(
-                "Laptop",
-                "Wireless Mouse",
-                "Keyboard"
-            )
+                "message",
+                "Recommendation service is temporarily unavailable",
+
+                "recommendations",
+                List.of(
+                        "Top Sellers",
+                        "Best Selling Products",
+                        "Trending Products"
+                )
         );
     }
 }
