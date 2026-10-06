@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.circuitbreaker.product_service.model.Product;
+import com.circuitbreaker.product_service.dto.ProductRequest;
+import com.circuitbreaker.product_service.dto.ProductResponse;
 import com.circuitbreaker.product_service.service.ProductService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/products")
@@ -27,45 +30,40 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<Product> getAllProducts() {
+    public List<ProductResponse> getAllProducts() {
         return productService.getAllProducts();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+    public ResponseEntity<ProductResponse> getProductById(
+            @PathVariable Long id) {
 
-        Product product = productService.getProductById(id);
-
-        if (product == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(product);
+        return ResponseEntity.ok(
+                productService.getProductById(id)
+        );
     }
 
     @PostMapping
-    public ResponseEntity<Product> createProduct(
-            @RequestBody Product product) {
+    public ResponseEntity<ProductResponse> createProduct(
+            @Valid @RequestBody ProductRequest request) {
 
-        Product savedProduct = productService.createProduct(product);
+        ProductResponse response =
+                productService.createProduct(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(savedProduct);
+                .body(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(
+    public ResponseEntity<ProductResponse> updateProduct(
             @PathVariable Long id,
-            @RequestBody Product product) {
+            @Valid @RequestBody ProductRequest request) {
 
-        Product updatedProduct = productService.updateProduct(id, product);
+        ProductResponse response =
+                productService.updateProduct(id, request);
 
-        if (updatedProduct == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(updatedProduct);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")

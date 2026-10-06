@@ -6,54 +6,31 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.circuitbreaker.recommendation_service.model.Recommendation;
+import com.circuitbreaker.recommendation_service.dto.RecommendationResponse;
+import com.circuitbreaker.recommendation_service.service.RecommendationService;
 
 @RestController
 @RequestMapping("/api/recommendations")
 public class RecommendationController {
 
-    @GetMapping
-    public List<Recommendation> getRecommendations() {
+    private final RecommendationService recommendationService;
 
-        return List.of(
-                new Recommendation(
-                        1L,
-                        "Laptop",
-                        "Popular among electronics customers"
-                ),
-                new Recommendation(
-                        2L,
-                        "Wireless Mouse",
-                        "Frequently purchased with laptops"
-                ),
-                new Recommendation(
-                        3L,
-                        "Keyboard",
-                        "Trending accessory"
-                )
-        );
+    public RecommendationController(
+            RecommendationService recommendationService) {
+
+        this.recommendationService = recommendationService;
     }
+
+    @GetMapping
+    public List<RecommendationResponse> getRecommendations() {
+
+        return recommendationService.getRecommendations();
+    }
+
     @GetMapping("/slow")
-public List<Recommendation> getSlowRecommendations() throws InterruptedException {
+    public List<RecommendationResponse> getSlowRecommendations()
+            throws InterruptedException {
 
-    Thread.sleep(10000);
-
-    return List.of(
-            new Recommendation(
-                    1L,
-                    "Laptop",
-                    "Popular among electronics customers"
-            ),
-            new Recommendation(
-                    2L,
-                    "Wireless Mouse",
-                    "Frequently purchased with laptops"
-            ),
-            new Recommendation(
-                    3L,
-                    "Keyboard",
-                    "Trending accessory"
-            )
-    );
-}
+        return recommendationService.getSlowRecommendations();
+    }
 }

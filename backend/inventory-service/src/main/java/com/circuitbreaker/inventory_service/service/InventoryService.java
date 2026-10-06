@@ -1,91 +1,161 @@
 package com.circuitbreaker.inventory_service.service;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
+import java.util.List;
 
+import com.circuitbreaker.inventory_service.dto.InventoryReleaseRequest;
 import com.circuitbreaker.inventory_service.dto.InventoryRequest;
+import com.circuitbreaker.inventory_service.dto.InventoryReservationRequest;
 import com.circuitbreaker.inventory_service.dto.InventoryResponse;
+import com.circuitbreaker.inventory_service.exception.InsufficientInventoryException;
+import com.circuitbreaker.inventory_service.exception.InvalidInventoryReleaseException;
 import com.circuitbreaker.inventory_service.exception.InventoryNotFoundException;
+import com.circuitbreaker.inventory_service.mapper.InventoryMapper;
 import com.circuitbreaker.inventory_service.model.Inventory;
 import com.circuitbreaker.inventory_service.repository.InventoryRepository;
 
 @Service
 public class InventoryService {
 
-    private final InventoryRepository inventoryRepository;
+        private final InventoryRepository inventoryRepository;
+        private final InventoryMapper inventoryMapper;
 
-    public InventoryService(InventoryRepository inventoryRepository) {
-        this.inventoryRepository = inventoryRepository;
+        public InventoryService(
+                        InventoryRepository inventoryRepository,
+                        InventoryMapper inventoryMapper) {
+
+                this.inventoryRepository = inventoryRepository;
+                this.inventoryMapper = inventoryMapper;
+        }
+
+        public InventoryResponse createInventory(
+                        InventoryRequest request) {
+
+                Inventory inventory = inventoryMapper.toEntity(request);
+
+                inventory.setReservedQuantity(0);
+                inventory.setLastUpdated(LocalDateTime.now());
+
+                Inventory savedInventory = inventoryRepository.save(inventory);
+
+                return inventoryMapper.toResponse(savedInventory);
+        }
+
+
+        public List<InventoryResponse> getAllInventory() {
+
+                return inventoryRepository.findAll()
+                                .stream()
+                                .map(inventoryMapper::toResponse)
+                                .toList();
+        }
+
+    public InventoryResponse getInventoryById(Long id){
+        Inventory inventory = inventoryRepository.findById(id)
+        .orElseThrow(
+                () -> new InventoryNotFoundException(id)
+        );
+        return inventoryMapper.toResponse(inventory);
     }
 
-    public List<InventoryResponse> getAllInventory() {
+    public InventoryResponse updateInventory(Long id , InventoryRequest request){
+        Inventory existingInventory = inventoryRepository.findById(id)
+        .orElseThrow(
+                () -> new InventoryNotFoundException(id)
 
-        return inventoryRepository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    public InventoryResponse getByProductId(Long productId) {
-
-        Inventory inventory = inventoryRepository
-                .findByProductId(productId)
-                .orElseThrow(() ->
-                        new InventoryNotFoundException(productId)
-                );
-
-        return toResponse(inventory);
-    }
-
-    public InventoryResponse createInventory(
-            InventoryRequest request) {
-
-        Inventory inventory = new Inventory();
-
-        inventory.setProductId(request.getProductId());
-        inventory.setQuantity(request.getQuantity());
-
-        inventory.setAvailable(
-                request.getQuantity() > 0
         );
 
-        Inventory savedInventory =
-                inventoryRepository.save(inventory);
+existingInventory.setProductId(request.getProductId());
+    existingInventory.setQuantity(request.getQuantity());
+    existingInventory.setReorderLevel(request.getReorderLevel());
+    existingInventory.setWarehouse(request.getWarehouse());
+    existingInventory.setSupplier(request.getSupplier());
 
-        return toResponse(savedInventory);
+    existingInventory.setLastUpdated(LocalDateTime.now());
+
+   Inventory updatedInventory =
+            inventoryRepository.save(existingInventory);
+
+    return inventoryMapper.toResponse(updatedInventory);
+
+    }
+    public void deleteInventory(Long id) {
+
+    if (!inventoryRepository.existsById(id)) {
+        throw new InventoryNotFoundException(id);
     }
 
-    public InventoryResponse updateInventory(
-            Long productId,
-            InventoryRequest request) {
+    inventoryRepository.deleteById(id);
+}
 
-        Inventory inventory = inventoryRepository
-                .findByProductId(productId)
-                .orElseThrow(() ->
-                        new InventoryNotFoundException(productId)
-                );
+public InventoryResponse reserveInventory(
+        Long id,
+        InventoryReservationRequest request) {
 
-        inventory.setQuantity(request.getQuantity());
+    Inventory inventory =
+            inventoryRepository.findById(id)
+                    .orElseThrow(
+                            () -> new InventoryNotFoundException(id)
+                    );
 
-        inventory.setAvailable(
-                request.getQuantity() > 0
+    int availableQuantity =
+            inventory.getQuantity()
+                    - inventory.getReservedQuantity();
+
+    if (request.getQuantity() > availableQuantity) {
+        throw new InsufficientInventoryException(
+                id,
+                request.getQuantity(),
+                availableQuantity
         );
-
-        Inventory updatedInventory =
-                inventoryRepository.save(inventory);
-
-        return toResponse(updatedInventory);
     }
 
-    private InventoryResponse toResponse(
-            Inventory inventory) {
+    inventory.setReservedQuantity(
+            inventory.getReservedQuantity()
+                    + request.getQuantity()
+    );
 
-        return new InventoryResponse(
-                inventory.getId(),
-                inventory.getProductId(),
-                inventory.getQuantity(),
-                inventory.isAvailable()
+    inventory.setLastUpdated(LocalDateTime.now());
+
+    Inventory savedInventory =
+            inventoryRepository.save(inventory);
+
+    return inventoryMapper.toResponse(savedInventory);
+}
+
+public InventoryResponse releaseInventory(
+        Long id,
+        InventoryReleaseRequest request) {
+
+    Inventory inventory =
+            inventoryRepository.findById(id)
+                    .orElseThrow(
+                            () -> new InventoryNotFoundException(id)
+                    );
+
+    if (request.getQuantity()
+            > inventory.getReservedQuantity()) {
+
+        throw new InvalidInventoryReleaseException(
+                id,
+                request.getQuantity(),
+                inventory.getReservedQuantity()
         );
     }
+
+    inventory.setReservedQuantity(
+            inventory.getReservedQuantity()
+                    - request.getQuantity()
+    );
+
+    inventory.setLastUpdated(LocalDateTime.now());
+
+    Inventory savedInventory =
+            inventoryRepository.save(inventory);
+
+    return inventoryMapper.toResponse(savedInventory);
+}
+
 }

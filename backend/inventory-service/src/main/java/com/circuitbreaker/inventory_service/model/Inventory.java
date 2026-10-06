@@ -1,11 +1,15 @@
 package com.circuitbreaker.inventory_service.model;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "inventory")
 public class Inventory {
 
     @Id
@@ -14,18 +18,31 @@ public class Inventory {
 
     private Long productId;
 
-    private int quantity;
+    private Integer quantity;
 
-    private boolean available;
+    private Integer reservedQuantity =0;
+
+    private Integer reorderLevel;
+
+    private String warehouse;
+
+    private String supplier;
+
+    private LocalDateTime lastUpdated;
+
 
     public Inventory() {
     }
 
-    public Inventory(Long id, Long productId, int quantity, boolean available) {
+    public Inventory(Long id, LocalDateTime lastUpdated, Long productId, Integer quantity, Integer reorderLevel, Integer reservedQuantity, String supplier, String warehouse) {
         this.id = id;
+        this.lastUpdated = lastUpdated;
         this.productId = productId;
         this.quantity = quantity;
-        this.available = available;
+        this.reorderLevel = reorderLevel;
+        this.reservedQuantity = reservedQuantity;
+        this.supplier = supplier;
+        this.warehouse = warehouse;
     }
 
     public Long getId() {
@@ -44,19 +61,53 @@ public class Inventory {
         this.productId = productId;
     }
 
-    public int getQuantity() {
+    public Integer getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(int quantity) {
+    public void setQuantity(Integer quantity) {
         this.quantity = quantity;
     }
 
-    public boolean isAvailable() {
-        return available;
+    public Integer getReservedQuantity() {
+        return reservedQuantity;
     }
 
-    public void setAvailable(boolean available) {
-        this.available = available;
+    public void setReservedQuantity(Integer reservedQuantity) {
+        this.reservedQuantity = reservedQuantity;
     }
+
+    public Integer getReorderLevel() {
+        return reorderLevel;
+    }
+
+    public void setReorderLevel(Integer reorderLevel) {
+        this.reorderLevel = reorderLevel;
+    }
+
+    public String getWarehouse() {
+        return warehouse;
+    }
+
+    public void setWarehouse(String warehouse) {
+        this.warehouse = warehouse;
+    }
+
+    public String getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(String supplier) {
+        this.supplier = supplier;
+    }
+
+    public LocalDateTime getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(LocalDateTime lastUpdated) {
+        this.lastUpdated = lastUpdated;
+    }
+    
+
 }
