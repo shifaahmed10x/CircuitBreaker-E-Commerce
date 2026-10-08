@@ -1,9 +1,9 @@
 package com.circuitbreaker.inventory_service.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
-import java.util.List;
 
 import com.circuitbreaker.inventory_service.dto.InventoryReleaseRequest;
 import com.circuitbreaker.inventory_service.dto.InventoryRequest;
@@ -157,5 +157,11 @@ public InventoryResponse releaseInventory(
 
     return inventoryMapper.toResponse(savedInventory);
 }
+public List<InventoryResponse> getInventoryByProductId(Long productId) {
 
+    return inventoryRepository.findByProductId(productId)
+            .stream()
+            .map(inventoryMapper::toResponse)
+            .toList();
+}
 }

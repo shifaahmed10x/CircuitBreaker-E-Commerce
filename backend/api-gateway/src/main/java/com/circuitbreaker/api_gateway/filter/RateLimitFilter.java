@@ -24,8 +24,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain)
-            throws ServletException, IOException {
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+
+        String path = request.getRequestURI();
+
+        // Monitoring endpoints should not consume
+        // customer API rate-limit permissions.
+        if (path.startsWith("/api/monitoring/")
+                || path.startsWith("/actuator/")) {
+
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (rateLimiter.acquirePermission()) {
 

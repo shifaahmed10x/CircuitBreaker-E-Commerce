@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.circuitbreaker.recommendation_service.dto.RecommendationResponse;
@@ -16,21 +17,22 @@ public class RecommendationController {
     private final RecommendationService recommendationService;
 
     public RecommendationController(
-            RecommendationService recommendationService) {
-
+            RecommendationService recommendationService
+    ) {
         this.recommendationService = recommendationService;
     }
 
     @GetMapping
     public List<RecommendationResponse> getRecommendations() {
-
         return recommendationService.getRecommendations();
     }
 
     @GetMapping("/slow")
-    public List<RecommendationResponse> getSlowRecommendations()
-            throws InterruptedException {
+    public List<RecommendationResponse> getSlowRecommendations(
+            @RequestParam(defaultValue = "10") int delay
+    ) throws InterruptedException {
 
-        return recommendationService.getSlowRecommendations();
+        return recommendationService
+                .getRecommendationsWithLatency(delay);
     }
 }

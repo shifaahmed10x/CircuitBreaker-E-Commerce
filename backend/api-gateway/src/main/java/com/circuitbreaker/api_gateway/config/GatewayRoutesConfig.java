@@ -8,25 +8,38 @@ import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouter
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.function.RequestPredicates;
+import static org.springframework.web.servlet.function.RequestPredicates.path;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
 @Configuration
 public class GatewayRoutesConfig {
 
-        @Bean
-        public RouterFunction<ServerResponse> recommendationCircuitBreakerRoute() {
+    @Bean
+    public RouterFunction<ServerResponse> recommendationCircuitBreakerRoute() {
 
-                return route("recommendation-circuit-breaker")
-                                .route(
-                                                RequestPredicates.path("/api/recommendations/**"),
-                                                http())
-                                .filter(lb("RECOMMENDATION-SERVICE"))
-                                .filter(
-                                                circuitBreaker(
-                                                                "recommendationCircuitBreaker",
-                                                                URI.create("forward:/fallback/recommendations")))
-                                .build();
-        }
+        return route("recommendation-circuit-breaker")
+                .route(
+                        path("/api/recommendations/**"),
+                        http()
+                )
+
+                // Load Balancer first
+                .filter(
+                        lb("RECOMMENDATION-SERVICE")
+                )
+
+                // Circuit Breaker wraps the service call
+                .filter(
+                        circuitBreaker(
+                                config -> config
+                                        .setId("recommendationCircuitBreaker")
+                                        .setFallbackUri(
+                                                URI.create("forward:/fallback/recommendations")
+                                        )
+                        )
+                )
+
+                .build();
+    }
 }
