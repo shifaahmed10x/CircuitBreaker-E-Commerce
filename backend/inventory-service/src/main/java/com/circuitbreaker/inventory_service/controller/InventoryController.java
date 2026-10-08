@@ -87,4 +87,10 @@ public ResponseEntity<InventoryResponse> releaseInventory(
 
     return ResponseEntity.ok(response);
 }
+@GetMapping("/product/{productId}")
+public List<InventoryResponse> getInventoryByProductId(
+        @PathVariable Long productId
+) {
+    return inventoryService.getInventoryByProductId(productId);
+}
 }

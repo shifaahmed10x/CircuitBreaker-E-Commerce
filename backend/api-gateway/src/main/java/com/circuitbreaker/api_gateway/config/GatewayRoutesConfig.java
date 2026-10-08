@@ -1,4 +1,5 @@
 package com.circuitbreaker.api_gateway.config;
+
 import java.net.URI;
 
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
@@ -23,17 +24,20 @@ public class GatewayRoutesConfig {
                         http()
                 )
 
-                // Circuit Breaker must wrap the downstream call
-                .filter(
-                        circuitBreaker(
-                                "recommendationCircuitBreaker",
-                                URI.create("forward:/fallback/recommendations")
-                        )
-                )
-
-                // Load Balancer resolves RECOMMENDATION-SERVICE
+                // Load Balancer first
                 .filter(
                         lb("RECOMMENDATION-SERVICE")
+                )
+
+                // Circuit Breaker wraps the service call
+                .filter(
+                        circuitBreaker(
+                                config -> config
+                                        .setId("recommendationCircuitBreaker")
+                                        .setFallbackUri(
+                                                URI.create("forward:/fallback/recommendations")
+                                        )
+                        )
                 )
 
                 .build();
